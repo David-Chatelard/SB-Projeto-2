@@ -2,9 +2,13 @@ section .data
 input_command db "Digite o nome do arquivo: ", 0
 size_input_command EQU $-input_command
 
+output_file_name db "saida.asm", 0
+
 section .bss
 input_file_name resb 25 ;reserva 25 bytes
 input_file_descriptor resd 1
+
+output_file_descriptor resd 1
 
 section .text
 global _start
@@ -31,10 +35,18 @@ _start:
 	mov ecx, 0      ;modo de leitura
 	mov edx, 0755o  ;permissoes
 	int 80h
+	
 	mov dword [input_file_descriptor], eax  ;salvando o file descriptor
 	
 	;Chamada 8, criando o arquivo de saida
+	mov eax, 8
+	mov ebx, output_file_name
+	mov ecx, 0755o
+	int 80h
 	
+	mov dword [output_file_descriptor], eax  ;salvando o file descriptor
+	
+	;Ler os opcodes
 	
 	;Chamada , para fechar o arquivo
 	mov eax, 6
