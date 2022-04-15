@@ -233,8 +233,8 @@ naoOito:
 
 
 	;botar por aqui uma condicao de parada
-	cmp [opcode_lido], 14
-	je end_loop
+	;cmp [opcode_lido], 14
+	;je end_loop
 
 salva_opcode:
 	mov ebx, [has_dezena]
