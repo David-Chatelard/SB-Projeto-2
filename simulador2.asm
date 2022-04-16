@@ -124,7 +124,7 @@ loop_begin:
 	;Se foi " " significa que o que esta em opcode_lido ja eh o opcode inteiro
 
 	push dword [output_file_descriptor]
-	push dword index
+	push dword [index]
 	push dword [has_dezena]
 	push word [opcode_lido]
 	call escreve_opcode
@@ -202,92 +202,92 @@ cu:
 	ret
 
 escreve_opcode:
-	;ebp+8 == opcode_lido
-	;ebp+10 == has_dezena
-	;ebp+14 == index
-	;ebp+18 == output_file_descriptor
+	;opcode_lido == opcode_lido
+	;has_dezena == has_dezena
+	;index == index
+	;output_file_descriptor == output_file_descriptor
 	enter 0, 0
 	;Verificando se o opcode tem dezena
-	cmp dword [ebp+10], 1
+	cmp dword [has_dezena], 1
 	je naoDezena
 
-	cmp byte [ebp+8+1], 30h ;compara com "0"
+	cmp byte [opcode_lido+1], 30h ;compara com "0"
 	jne naoDezenaZero
 
 	;Escreve o opcode "LOAD" no arquivo de saida
 
 	;Chamada 4, escrever no arquivo de saida
 	mov eax, 4
-	mov ebx, [ebp+18]
+	mov ebx, [output_file_descriptor]
 	mov ecx, opcode_load
 	mov edx, size_opcode_load
 	int 80h
 
-	add dword [ebp+14], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
+	add dword [index], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
 
 	jmp end_func
 
 naoDezenaZero:
-	cmp byte [ebp+8+1], 31h ;compara com "1"
+	cmp byte [opcode_lido+1], 31h ;compara com "1"
 	jne naoDezenaUm
 
 	;Escreve o opcode "STORE" no arquivo de saida
 
 	;Chamada 4, escrever no arquivo de saida
 	mov eax, 4
-	mov ebx, [ebp+18]
+	mov ebx, [output_file_descriptor]
 	mov ecx, opcode_store
 	mov edx, size_opcode_store
 	int 80h
 
-	add dword [ebp+14], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
+	add dword [index], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
 
 	jmp end_func
 
 naoDezenaUm:
-	cmp byte [ebp+8+1], 32h ;compara com "2"
+	cmp byte [opcode_lido+1], 32h ;compara com "2"
 	jne naoDezenaDois
 
 	;Escreve o opcode "INPUT" no arquivo de saida
 
 	;Chamada 4, escrever no arquivo de saida
 	mov eax, 4
-	mov ebx, [ebp+18]
+	mov ebx, [output_file_descriptor]
 	mov ecx, opcode_input
 	mov edx, size_opcode_input
 	int 80h
 
-	add dword [ebp+14], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
+	add dword [index], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
 
 	jmp end_func
 
 naoDezenaDois:
-	cmp byte [ebp+8+1], 33h ;compara com "3"
+	cmp byte [opcode_lido+1], 33h ;compara com "3"
 	jne naoDezenaTres
 
 	;Escreve o opcode "OUTPUT" no arquivo de saida
 
 	;Chamada 4, escrever no arquivo de saida
 	mov eax, 4
-	mov ebx, [ebp+18]
+	mov ebx, [output_file_descriptor]
 	mov ecx, opcode_output
 	mov edx, size_opcode_output
 	int 80h
 
-	add dword [ebp+14], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
+	add dword [index], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
 
 	jmp end_func
 
 naoDezenaTres:
 	;Se tiver dezena depois tem que ser "0", "1", "2", "3" ou "4", entao nem precisa comparar com "4", pois eh a ultima opcao
-	cmp byte [ebp+8+1], 34h ;compara com "4"
+	cmp byte [opcode_lido+1], 34h ;compara com "4"
 	jne naoDezena
 
 	;Escreve o opcode "STOP" no arquivo de saida
 
 	;Chamada 4, escrever no arquivo de saida
 	mov eax, 4
-	mov ebx, [ebp+18]
+	mov ebx, [output_file_descriptor]
 	mov ecx, opcode_stop
 	mov edx, size_opcode_stop
 	int 80h
@@ -296,156 +296,156 @@ naoDezenaTres:
 
 naoDezena:
 	;Fazer as verificacoes para os opcodes unitarios
-	cmp byte [ebp+8], 31h ;compara com "1"
+	cmp byte [opcode_lido], 31h ;compara com "1"
 	jne naoUm
 	
 	;Escreve o opcode "ADD" no arquivo de saida
 
 	;Chamada 4, escrever no arquivo de saida
 	mov eax, 4
-	mov ebx, [ebp+18]
+	mov ebx, [output_file_descriptor]
 	mov ecx, opcode_add
 	mov edx, size_opcode_add
 	int 80h
 
-	add dword [ebp+14], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
+	add dword [index], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
 
 	jmp end_func
 
 naoUm:
-	cmp byte [ebp+8], 32h ;compara com "2"
+	cmp byte [opcode_lido], 32h ;compara com "2"
 	jne naoDois
 	
 	;Escreve o opcode "SUB" no arquivo de saida
 
 	;Chamada 4, escrever no arquivo de saida
 	mov eax, 4
-	mov ebx, [ebp+18]
+	mov ebx, [output_file_descriptor]
 	mov ecx, opcode_sub
 	mov edx, size_opcode_sub
 	int 80h
 
-	add dword [ebp+14], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
+	add dword [index], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
 
 	jmp end_func
 
 naoDois:
-	cmp byte [ebp+8], 33h ;compara com "3"
+	cmp byte [opcode_lido], 33h ;compara com "3"
 	jne naoTres
 	
 	;Escreve o opcode "MULT" no arquivo de saida
 
 	;Chamada 4, escrever no arquivo de saida
 	mov eax, 4
-	mov ebx, [ebp+18]
+	mov ebx, [output_file_descriptor]
 	mov ecx, opcode_mult
 	mov edx, size_opcode_mult
 	int 80h
 
-	add dword [ebp+14], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
+	add dword [index], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
 
 	jmp end_func
 
 naoTres:
-	cmp byte [ebp+8], 34h ;compara com "4"
+	cmp byte [opcode_lido], 34h ;compara com "4"
 	jne naoQuatro
 	
 	;Escreve o opcode "DIV" no arquivo de saida
 
 	;Chamada 4, escrever no arquivo de saida
 	mov eax, 4
-	mov ebx, [ebp+18]
+	mov ebx, [output_file_descriptor]
 	mov ecx, opcode_div
 	mov edx, size_opcode_div
 	int 80h
 
-	add dword [ebp+14], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
+	add dword [index], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
 
 	jmp end_func
 
 naoQuatro:
-	cmp byte [ebp+8], 35h ;compara com "5"
+	cmp byte [opcode_lido], 35h ;compara com "5"
 	jne naoCinco
 	
 	;Escreve o opcode "JMP" no arquivo de saida
 
 	;Chamada 4, escrever no arquivo de saida
 	mov eax, 4
-	mov ebx, [ebp+18]
+	mov ebx, [output_file_descriptor]
 	mov ecx, opcode_jmp
 	mov edx, size_opcode_jmp
 	int 80h
 
-	add dword [ebp+14], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
+	add dword [index], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
 
 	jmp end_func
 
 naoCinco:
-	cmp byte [ebp+8], 36h ;compara com "6"
+	cmp byte [opcode_lido], 36h ;compara com "6"
 	jne naoSeis
 	
 	;Escreve o opcode "JMPN" no arquivo de saida
 
 	;Chamada 4, escrever no arquivo de saida
 	mov eax, 4
-	mov ebx, [ebp+18]
+	mov ebx, [output_file_descriptor]
 	mov ecx, opcode_jmpn
 	mov edx, size_opcode_jmpn
 	int 80h
 
-	add dword [ebp+14], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
+	add dword [index], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
 
 	jmp end_func
 
 naoSeis:
-	cmp byte [ebp+8], 37h ;compara com "7"
+	cmp byte [opcode_lido], 37h ;compara com "7"
 	jne naoSete
 	
 	;Escreve o opcode "JMPP" no arquivo de saida
 
 	;Chamada 4, escrever no arquivo de saida
 	mov eax, 4
-	mov ebx, [ebp+18]
+	mov ebx, [output_file_descriptor]
 	mov ecx, opcode_jmpp
 	mov edx, size_opcode_jmpp
 	int 80h
 
-	add dword [ebp+14], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
+	add dword [index], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
 
 	jmp end_func
 
 naoSete:
-	cmp byte [ebp+8], 38h ;compara com "8"
+	cmp byte [opcode_lido], 38h ;compara com "8"
 	jne naoOito
 	
 	;Escreve o opcode "JMPZ" no arquivo de saida
 
 	;Chamada 4, escrever no arquivo de saida
 	mov eax, 4
-	mov ebx, [ebp+18]
+	mov ebx, [output_file_descriptor]
 	mov ecx, opcode_jmpz
 	mov edx, size_opcode_jmpz
 	int 80h
 
-	add dword [ebp+14], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
+	add dword [index], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
 
 	jmp end_func
 
 naoOito:
 	;Se nao tiver dezena tem que ser "0", "1", ..., "9", entao nem precisa comparar com "9", pois eh a ultima opcao
-	cmp byte [ebp+8], 39h ;compara com "9"
+	cmp byte [opcode_lido], 39h ;compara com "9"
 	jne end_func
 	
 	;Escreve o opcode "COPY" no arquivo de saida
 
 	;Chamada 4, escrever no arquivo de saida
 	mov eax, 4
-	mov ebx, [ebp+18]
+	mov ebx, [output_file_descriptor]
 	mov ecx, opcode_copy
 	mov edx, size_opcode_copy
 	int 80h
 
-	add dword [ebp+14], 6		;atualiza o valor do index para pular os operandos e so ler os opcodes
+	add dword [index], 6		;atualiza o valor do index para pular os operandos e so ler os opcodes
 
 	jmp end_func
 
