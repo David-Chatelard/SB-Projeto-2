@@ -7,6 +7,9 @@ section .data
 input_command db "Digite o nome do arquivo: ", 0
 size_input_command EQU $-input_command
 
+str_x_bytes_lidos db "A quantidade de bytes lidas foi: "
+size_str_x_bytes_lidos EQU $-str_x_bytes_lidos
+
 output_file_name db "saida.asm", 0
 
 TAM dd 150
@@ -55,6 +58,8 @@ opcode_lido resb 2
 index resd 1
 has_dezena resd 1 ;flag para saber se o opcode tem dezena ou nao
 
+bytes_lidos resd 1 ;bytes lidos do arquivo de saida
+
 teste2 resb 2
 
 
@@ -94,6 +99,7 @@ _start:
 	
 	mov dword [output_file_descriptor], eax  ;salvando o file descriptor
 	
+	push str_input
 	push dword [input_file_descriptor]
 	call le_do_arquivo
 
@@ -157,16 +163,41 @@ incrementa_index:
 	loop loop_begin
 end_loop:
 	
-	;Chamada 6, para fechar o arquivo
+	;Chamada 6, para fechar o arquivo de entrada
 	mov eax, 6
 	mov ebx, dword [input_file_descriptor]
 	int 80h
 
-	;Chamada 6, para fechar o arquivo
+	;Chamada 6, para fechar o arquivo de saida
 	mov eax, 6
 	mov ebx, dword [output_file_descriptor]
 	int 80h
+
+	;Chamada 5, para abrir o arquivo de saida em leitura
+	mov eax, 5
+	mov ebx, output_file_name
+	mov ecx, 0      ;modo de leitura
+	mov edx, 0755o  ;permissoes
+	int 80h
+
+	mov dword [output_file_descriptor], eax  ;salvando o file descriptor
+
+	;Chamada 3, input, para ler do arquivo de saida
+	mov eax, 3
+	mov ebx, dword [output_file_descriptor]
+	mov ecx, str_input
+	mov edx, TAM ;conteudo do arquivo so vai ate 150 bytes
+	int 80h
+
+	mov dword [bytes_lidos], eax
 	
+	;Chamada 4, print na tela para testar
+	mov eax, 4
+	mov ebx, 1
+	mov ecx, str_x_bytes_lidos
+	mov edx, size_str_x_bytes_lidos
+	int 80h
+
 	;Finalizando o programa
 	mov eax, 1
 	mov ebx, 0
