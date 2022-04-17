@@ -55,8 +55,6 @@ opcode_lido resb 2
 index resd 1
 has_dezena resd 1 ;flag para saber se o opcode tem dezena ou nao
 
-teste2 resb 2
-
 
 section .text
 global _start
@@ -94,46 +92,42 @@ _start:
 	
 	mov dword [output_file_descriptor], eax  ;salvando o file descriptor
 	
-	push dword [input_file_descriptor]
-	call le_do_arquivo
+	;push input_file_descriptor
+	;call le_do_arquivo
 
 	;Chamada 3, input, para ler do arquivo de entrada
-	;mov eax, 3
-	;mov ebx, [input_file_descriptor]
-	;mov ecx, str_input
-	;mov edx, TAM ;conteudo do arquivo so vai ate 150 bytes
-	;int 80h
+	mov eax, 3
+	mov ebx, [input_file_descriptor]
+	mov ecx, str_input
+	mov edx, TAM ;conteudo do arquivo so vai ate 150 bytes
+	int 80h
 
-	;Print de teste-------------------------------
 	;Chamada 4, print na tela para testar
-	;mov eax, 4
-	;mov ebx, 1
-	;mov ecx, str_input
-	;mov edx, TAM
-	;int 80h
-	;Print de teste-------------------------------
+	mov eax, 4
+	mov ebx, 1
+	mov ecx, str_input
+	mov edx, TAM
+	int 80h
 
 	;Loop para ler os opcodes
 	mov dword [i], TAM ;salvando TAM para por no ecx
 	mov dword ecx, [i] ;botando TAM no ecx para o loop
 	mov dword [index], 0 ;inicia o indice em 0
 	mov dword [has_dezena], 0 ;inicia a flag em 0
-
 loop_begin:
 	mov ebx, [index]			 ;bota o indice a ser lido no ebx
 	mov al, byte [str_input+ebx] ;le o char nesse indice e salva em al
 
+	
 	cmp al, 20h 				 ;verifica se o char lido foi " "
 	jne salva_opcode			 ;se nao for salva em opcode_lido e vai para a proxima iteracao do loop
 	;Se foi " " significa que o que esta em opcode_lido ja eh o opcode inteiro
 
-	push str_input
 	push dword [output_file_descriptor]
 	push dword [index]
 	push dword [has_dezena]
 	push word [opcode_lido]
 	call escreve_opcode
-	mov dword [index], eax
 
 	mov dword [has_dezena], 0 	 ;volta a flag para 0 para o proximo opcode
 
@@ -145,6 +139,19 @@ loop_begin:
 	jmp end_loop
 not_end:
 	jmp incrementa_index		 ;incrementa o indice e vai para a proxima iteracao do loop
+
+	;Print de teste-------------------------------
+	push ecx			;salva o valor de ecx, que eh o contador do loop
+
+	;Chamada 4, print na tela para testar
+	mov eax, 4
+	mov ebx, 1
+	mov ecx, opcode_lido
+	mov edx, 1
+	int 80h
+
+	pop ecx				;recupera o valor de ecx
+	;Fim do print de teste-----------------------
 
 salva_opcode:
 	mov ebx, [has_dezena]
@@ -195,11 +202,10 @@ cu:
 	ret
 
 escreve_opcode:
-	;ebp+8 == [opcode_lido]
-	;ebp+10 == [has_dezena]
-	;ebp+14 == [index]
-	;ebp+18 == [output_file_descriptor]
-	;ebp+22 == str_input
+	;ebp+8 == opcode_lido
+	;ebp+10 == has_dezena
+	;index == index
+	;ebp+18 == output_file_descriptor
 	enter 0, 0
 	;Verificando se o opcode tem dezena
 	cmp dword [ebp+10], 1
@@ -217,12 +223,7 @@ escreve_opcode:
 	mov edx, size_opcode_load
 	int 80h
 
-	;add dword [ebp+14], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
-
-	push dword [ebp+22]
-	push dword [ebp+14]
-	call pula_operando
-	mov dword [ebp+14], eax
+	add dword [index], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
 
 	jmp end_func
 
@@ -239,14 +240,7 @@ naoDezenaZero:
 	mov edx, size_opcode_store
 	int 80h
 
-	;add dword [ebp+14], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
-
-
-	push dword [ebp+22]
-	push dword [ebp+14]
-	call pula_operando
-	mov dword [ebp+14], eax
-
+	add dword [index], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
 
 	jmp end_func
 
@@ -263,14 +257,7 @@ naoDezenaUm:
 	mov edx, size_opcode_input
 	int 80h
 
-	;add dword [ebp+14], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
-
-
-	push dword [ebp+22]
-	push dword [ebp+14]
-	call pula_operando
-	mov dword [ebp+14], eax
-
+	add dword [index], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
 
 	jmp end_func
 
@@ -287,14 +274,7 @@ naoDezenaDois:
 	mov edx, size_opcode_output
 	int 80h
 
-	;add dword [ebp+14], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
-
-
-	push dword [ebp+22]
-	push dword [ebp+14]
-	call pula_operando
-	mov dword [ebp+14], eax
-
+	add dword [index], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
 
 	jmp end_func
 
@@ -328,14 +308,7 @@ naoDezena:
 	mov edx, size_opcode_add
 	int 80h
 
-	;add dword [ebp+14], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
-
-
-	push dword [ebp+22]
-	push dword [ebp+14]
-	call pula_operando
-	mov dword [ebp+14], eax
-
+	add dword [index], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
 
 	jmp end_func
 
@@ -352,14 +325,7 @@ naoUm:
 	mov edx, size_opcode_sub
 	int 80h
 
-	;add dword [ebp+14], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
-
-
-	push dword [ebp+22]
-	push dword [ebp+14]
-	call pula_operando
-	mov dword [ebp+14], eax
-
+	add dword [index], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
 
 	jmp end_func
 
@@ -376,14 +342,7 @@ naoDois:
 	mov edx, size_opcode_mult
 	int 80h
 
-	;add dword [ebp+14], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
-
-
-	push dword [ebp+22]
-	push dword [ebp+14]
-	call pula_operando
-	mov dword [ebp+14], eax
-
+	add dword [index], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
 
 	jmp end_func
 
@@ -400,14 +359,7 @@ naoTres:
 	mov edx, size_opcode_div
 	int 80h
 
-	;add dword [ebp+14], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
-
-
-	push dword [ebp+22]
-	push dword [ebp+14]
-	call pula_operando
-	mov dword [ebp+14], eax
-
+	add dword [index], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
 
 	jmp end_func
 
@@ -424,14 +376,7 @@ naoQuatro:
 	mov edx, size_opcode_jmp
 	int 80h
 
-	;add dword [ebp+14], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
-
-
-	push dword [ebp+22]
-	push dword [ebp+14]
-	call pula_operando
-	mov dword [ebp+14], eax
-
+	add dword [index], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
 
 	jmp end_func
 
@@ -448,14 +393,7 @@ naoCinco:
 	mov edx, size_opcode_jmpn
 	int 80h
 
-	;add dword [ebp+14], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
-
-
-	push dword [ebp+22]
-	push dword [ebp+14]
-	call pula_operando
-	mov dword [ebp+14], eax
-
+	add dword [index], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
 
 	jmp end_func
 
@@ -472,14 +410,7 @@ naoSeis:
 	mov edx, size_opcode_jmpp
 	int 80h
 
-	;add dword [ebp+14], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
-
-
-	push dword [ebp+22]
-	push dword [ebp+14]
-	call pula_operando
-	mov dword [ebp+14], eax
-
+	add dword [index], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
 
 	jmp end_func
 
@@ -496,14 +427,7 @@ naoSete:
 	mov edx, size_opcode_jmpz
 	int 80h
 
-	;add dword [ebp+14], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
-
-
-	push dword [ebp+22]
-	push dword [ebp+14]
-	call pula_operando
-	mov dword [ebp+14], eax
-
+	add dword [index], 3		;atualiza o valor do index para pular os operandos e so ler os opcodes
 
 	jmp end_func
 
@@ -521,69 +445,10 @@ naoOito:
 	mov edx, size_opcode_copy
 	int 80h
 
-	;add dword [ebp+14], 6		;atualiza o valor do index para pular os operandos e so ler os opcodes
-
-
-	push dword [ebp+22]
-	push dword [ebp+14]
-	call pula_operando
-	mov dword [ebp+14], eax
-
-	push dword [ebp+22]
-	push dword [ebp+14]
-	call pula_operando
-	mov dword [ebp+14], eax
-
+	add dword [index], 6		;atualiza o valor do index para pular os operandos e so ler os opcodes
 
 	jmp end_func
 
 end_func:
-	mov eax, dword [ebp+14]
-	leave
-	ret
-
-pula_operando:
-	;ebp+8 == [index]
-	;ebp+12 == str_input
-	enter 0, 0
-
-	mov eax, dword [ebp+12]
-	inc dword [ebp+8]	;incrementa o indice a ser lido da string
-	mov dword ecx, 6 ;botando 6 no ecx para o loop
-loop_start:
-	mov ebx, [ebp+8]			 ;bota o indice a ser lido no ebx
-	mov al, byte [str_input+ebx]    ;le o char nesse indice e salva em al
-	mov byte [teste2], al
-	mov byte [teste2+1], 0ah
-
-	;Print de teste-------------------------------
-	push eax
-	push ebx
-	push ecx
-
-	;Chamada 4, print na tela para testar
-	;mov eax, 4
-	;mov ebx, 1
-	;mov ecx, teste2
-	;mov edx, 8
-	;int 80h
-
-	pop ecx
-	pop ebx
-	pop eax
-	;Print de teste-------------------------------
-
-	cmp al, 20h 				 ;verifica se o char lido foi " "
-	jne aumenta_index			 ;se nao for, incrementa o index e vai pra proxima iteracao
-	;Se foi " " significa que ja passou do operando
-	jmp finish_loop_func
-
-aumenta_index:
-	inc dword [ebp+8]	;incrementa o indice a ser lido da string
-
-	loop loop_start
-
-finish_loop_func:
-	mov eax, dword [ebp+8]
 	leave
 	ret
