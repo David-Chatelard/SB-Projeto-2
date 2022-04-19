@@ -58,7 +58,9 @@ opcode_lido resb 2
 index resd 1
 has_dezena resd 1 ;flag para saber se o opcode tem dezena ou nao
 
-bytes_lidos resd 1 ;bytes lidos do arquivo de saida
+bytes_lidos resd 1 ;int com bytes lidos do arquivo de saida
+str_bytes_lidos_invertido resb 25 ;str com bytes lidos do arquivo de saida, vai ate 25 bytes
+str_bytes_lidos resb 25 ;str com bytes lidos do arquivo de saida, vai ate 25 bytes
 
 teste2 resb 2
 
@@ -230,12 +232,21 @@ end_loop:
 	int 80h
 
 	mov dword [bytes_lidos], eax
-	
+
+	;fazer aqui a logica de ir dividindo por 10 e botando o resto na string invertida e usar um contador pra saber quanto chars eu botei, e ai depois desinverter a string
+
 	;Chamada 4, print na tela para testar
 	mov eax, 4
 	mov ebx, 1
 	mov ecx, str_x_bytes_lidos
 	mov edx, size_str_x_bytes_lidos
+	int 80h
+
+	;Chamada 4, print na tela para testar
+	mov eax, 4
+	mov ebx, 1
+	mov ecx, str_bytes_lidos
+	mov edx, 25
 	int 80h
 
 	;Finalizando o programa
