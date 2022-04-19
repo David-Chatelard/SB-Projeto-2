@@ -7,7 +7,7 @@ section .data
 input_command db "Digite o nome do arquivo: ", 0
 size_input_command EQU $-input_command
 
-str_x_bytes_lidos db "A quantidade de bytes lidas foi: "
+str_x_bytes_lidos db "A quantidade de bytes do arquivo escrito foi: "
 size_str_x_bytes_lidos EQU $-str_x_bytes_lidos
 
 TAM dd 150
@@ -64,6 +64,9 @@ str_bytes_lidos resb 25 ;str com bytes lidos do arquivo de saida, vai ate 25 byt
 
 teste2 resb 2
 
+const10 resb 16
+index_inv resd 1
+index_certo resd 1
 
 section .text
 global _start
@@ -141,6 +144,7 @@ finish_loop_output_name:
 	
 	mov dword [output_file_descriptor], eax  ;salvando o file descriptor
 	
+	;Funcao para ler do arquivo de entrada
 	push str_input
 	push dword [input_file_descriptor]
 	call le_do_arquivo
@@ -205,10 +209,11 @@ incrementa_index:
 	loop loop_begin
 end_loop:
 	
+	;Botei essa chamada no final da funcao le_do_arquivo
 	;Chamada 6, para fechar o arquivo de entrada
-	mov eax, 6
-	mov ebx, dword [input_file_descriptor]
-	int 80h
+	;mov eax, 6
+	;mov ebx, dword [input_file_descriptor]
+	;int 80h
 
 	;Chamada 6, para fechar o arquivo de saida
 	mov eax, 6
@@ -233,16 +238,69 @@ end_loop:
 
 	mov dword [bytes_lidos], eax
 
-	;fazer aqui a logica de ir dividindo por 10 e botando o resto na string invertida e usar um contador pra saber quanto chars eu botei, e ai depois desinverter a string
+	;Convertendo o int de bytes_lidos para str, porem fica numa str invertida
+	mov dword ecx, 25 ;botando 25 no ecx para o loop
+	mov dword [index], 0 ;inicia o indice em 0
+	mov word [const10], 10
+	mov eax, 0 					 ;quociente
+	mov edx, 0 					 ;resto
+	mov eax, dword [bytes_lidos] ;quociente
+	shr eax, 16 ;shift pra direita de 16 bits, para os 16 bits mais significativos ficaram em ax
+	mov dx, ax	;passando os 16 bits mais significativos para dx
+	mov eax, dword [bytes_lidos] ;quociente ;voltando os 16 bits menos significativos para ax
+loop_converte_to_str:
+	mov edx, 0 					 ;resto
+	mov ebx, 0					 ;indice a ser escrito
+	mov ebx, [index]			 ;bota o indice a ser escrito no ebx
+	div word [const10]			 ;ax = dx.ax/10, dx = dx.ax%10
+	add dx, 30h				 ;converte de int para char
+	mov byte [str_bytes_lidos_invertido+ebx], dl ;escreve os 8 bits menos significativos do resto nesse indice de str_bytes_lidos_invertido
 
-	;Chamada 4, print na tela para testar
+	cmp ax, 0					 ;verifica se o quociente eh 0
+	jne continua_dividindo		 ;se nao for, ainda tem que dividir mais
+	;Se for 0, o numero todo ja esta na str_bytes_lidos_invertido
+
+	jmp termina_converte_to_str
+
+	continua_dividindo:
+
+	inc dword [index]	;incrementa o indice a ser escrito na string
+	loop loop_converte_to_str
+termina_converte_to_str:
+
+	;Desinvertendo a str
+	mov dword ecx, 25 ;botando 25 no ecx para o loop
+	mov eax, dword [index]
+	mov dword [index_inv], eax
+	mov dword [index_certo], 0
+loop_desinverte_str:
+	mov ebx, dword [index_inv]		 ;bota o indice a ser lido da str invertida no ebx
+	mov al, byte [str_bytes_lidos_invertido+ebx] ;le o char nesse indice e salva em al
+	mov ebx, dword [index_certo]			 ;bota o indice a ser escrito na str no ebx
+	mov [str_bytes_lidos+ebx], al ;escreve o char lido nesse indice
+
+	cmp dword [index_inv], 0
+	je end_loop_desinverte_str
+
+	inc dword [index_certo]	;incrementa o indice a ser escrito na string
+	dec dword [index_inv]	;decrementa o indice a ser lido da str invertida
+	loop loop_desinverte_str
+
+end_loop_desinverte_str:
+
+	;Botando quebra de linha no final da string, mas nem precisa, pode tirar isso se quiser
+	inc dword [index_certo]	;incrementa o indice a ser escrito na string
+	mov ebx, dword [index_certo]			 ;bota o indice a ser escrito na str no ebx
+	mov byte [str_bytes_lidos+ebx], 0ah ;escreve quebra de linha
+
+	;Chamada 4, print na tela "A quantidade de bytes do arquivo escrito foi: "
 	mov eax, 4
 	mov ebx, 1
 	mov ecx, str_x_bytes_lidos
 	mov edx, size_str_x_bytes_lidos
 	int 80h
 
-	;Chamada 4, print na tela para testar
+	;Chamada 4, print na tela da quantidade de bytes do arquivo escrito
 	mov eax, 4
 	mov ebx, 1
 	mov ecx, str_bytes_lidos
@@ -262,6 +320,11 @@ le_do_arquivo:
 	mov ebx, [ebp+8]
 	mov ecx, str_input
 	mov edx, TAM ;conteudo do arquivo so vai ate 150 bytes
+	int 80h
+
+	;Chamada 6, para fechar o arquivo de entrada
+	mov eax, 6
+	mov ebx, dword [input_file_descriptor]
 	int 80h
 
 	leave
