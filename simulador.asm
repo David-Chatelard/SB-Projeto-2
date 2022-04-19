@@ -10,8 +10,6 @@ size_input_command EQU $-input_command
 str_x_bytes_lidos db "A quantidade de bytes lidas foi: "
 size_str_x_bytes_lidos EQU $-str_x_bytes_lidos
 
-output_file_name db "saida.asm", 0
-
 TAM dd 150
 
 teste db "cu", 0
@@ -48,6 +46,8 @@ size_opcode_stop EQU $-opcode_stop
 section .bss
 input_file_name resb 25 ;reserva 25 bytes
 input_file_descriptor resd 1
+
+output_file_name resb 25 ;reserva 25 bytes
 
 output_file_descriptor resd 1
 
@@ -91,6 +91,46 @@ _start:
 	
 	mov dword [input_file_descriptor], eax  ;salvando o file descriptor
 	
+	;Fazendo o nome do arquivo de saida ser o de entrada.diss
+	;Pegando o nome do arquivo sem extensao
+	mov dword ecx, 25 ;botando 25 no ecx para o loop, nome do arquivo so vai ate 25 caracteres
+	mov dword [index], 0 ;inicia o indice em 0
+output_file_name_loop:
+	mov ebx, [index]			 ;bota o indice a ser lido no ebx
+	mov al, byte [input_file_name+ebx] ;le o char nesse indice e salva em al
+
+	cmp al, 2eh 				 ;verifica se o char lido foi "."
+	jne salva_char_lido			 ;se nao for, salva em output_file_name e vai para a proxima iteracao do loop
+	;Se foi "." significa que o que esta em output_file_name ja eh o nome do arquivo de entrada
+	;Adiciona o "." no nome do arquivo de saida e termina o loop
+	mov ebx, [index]
+	mov byte [output_file_name+ebx], al
+	jmp finish_loop_output_name
+
+	salva_char_lido:
+	mov ebx, [index]
+	mov byte [output_file_name+ebx], al
+
+	incrementa_index_output_name:
+	inc dword [index]	;incrementa o indice a ser lido da string
+
+	loop output_file_name_loop
+
+finish_loop_output_name:
+	;Botando o .diss no nome do arquivo de saida
+	inc dword [index]	;incrementa o indice a ser lido da string
+	mov ebx, [index]
+	mov byte [output_file_name+ebx], "d"
+	inc dword [index]	;incrementa o indice a ser lido da string
+	mov ebx, [index]
+	mov byte [output_file_name+ebx], "i"
+	inc dword [index]	;incrementa o indice a ser lido da string
+	mov ebx, [index]
+	mov byte [output_file_name+ebx], "s"
+	inc dword [index]	;incrementa o indice a ser lido da string
+	mov ebx, [index]
+	mov byte [output_file_name+ebx], "s"
+
 	;Chamada 8, criando o arquivo de saida
 	mov eax, 8
 	mov ebx, output_file_name
