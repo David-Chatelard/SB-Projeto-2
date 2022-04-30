@@ -12,8 +12,6 @@ size_str_x_bytes_lidos EQU $-str_x_bytes_lidos
 
 TAM dd 150
 
-teste db "cu", 0
-
 opcode_add db "ADD", 0ah
 size_opcode_add EQU $-opcode_add
 opcode_sub db "SUB", 0ah
@@ -149,22 +147,6 @@ finish_loop_output_name:
 	push dword [input_file_descriptor]
 	call le_do_arquivo
 
-	;Chamada 3, input, para ler do arquivo de entrada
-	;mov eax, 3
-	;mov ebx, [input_file_descriptor]
-	;mov ecx, str_input
-	;mov edx, TAM ;conteudo do arquivo so vai ate 150 bytes
-	;int 80h
-
-	;Print de teste-------------------------------
-	;Chamada 4, print na tela para testar
-	;mov eax, 4
-	;mov ebx, 1
-	;mov ecx, str_input
-	;mov edx, TAM
-	;int 80h
-	;Print de teste-------------------------------
-
 	;Loop para ler os opcodes
 	mov dword [i], TAM ;salvando TAM para por no ecx
 	mov dword ecx, [i] ;botando TAM no ecx para o loop
@@ -209,11 +191,7 @@ incrementa_index:
 	loop loop_begin
 end_loop:
 	
-	;Botei essa chamada no final da funcao le_do_arquivo
-	;Chamada 6, para fechar o arquivo de entrada
-	;mov eax, 6
-	;mov ebx, dword [input_file_descriptor]
-	;int 80h
+	;O arquivo de entrada fecha no final  da funcao le_do_arquivo
 
 	;Chamada 6, para fechar o arquivo de saida
 	mov eax, 6
@@ -328,15 +306,6 @@ le_do_arquivo:
 	int 80h
 
 	leave
-	ret
-
-cu:
-	;Chamada 4, print na tela para testar
-	mov eax, 4
-	mov ebx, 1
-	mov ecx, teste
-	mov edx, 2
-	int 80h
 	ret
 
 escreve_opcode:
