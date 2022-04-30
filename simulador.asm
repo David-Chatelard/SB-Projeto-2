@@ -10,7 +10,7 @@ size_input_command EQU $-input_command
 str_x_bytes_lidos db "A quantidade de bytes do arquivo escrito foi: "
 size_str_x_bytes_lidos EQU $-str_x_bytes_lidos
 
-TAM dd 150
+TAM dd 500
 
 opcode_add db "ADD", 0ah
 size_opcode_add EQU $-opcode_add
@@ -42,14 +42,14 @@ opcode_stop db "STOP", 0ah
 size_opcode_stop EQU $-opcode_stop
 
 section .bss
-input_file_name resb 25 ;reserva 25 bytes
+input_file_name resb 500 ;reserva 500 bytes
 input_file_descriptor resd 1
 
-output_file_name resb 25 ;reserva 25 bytes
+output_file_name resb 500 ;reserva 500 bytes
 
 output_file_descriptor resd 1
 
-str_input resb 150 ;considerando que o arquivo de entrada tera no maximo 150 bytes
+str_input resb 500 ;considerando que o arquivo de entrada tera no maximo 500 bytes
 
 i resd 1 ;para botar TAM em ecx no loop
 opcode_lido resb 2
@@ -57,8 +57,8 @@ index resd 1
 has_dezena resd 1 ;flag para saber se o opcode tem dezena ou nao
 
 bytes_lidos resd 1 ;int com bytes lidos do arquivo de saida
-str_bytes_lidos_invertido resb 25 ;str com bytes lidos do arquivo de saida, vai ate 25 bytes
-str_bytes_lidos resb 25 ;str com bytes lidos do arquivo de saida, vai ate 25 bytes
+str_bytes_lidos_invertido resb 500 ;str com bytes lidos do arquivo de saida, vai ate 500 bytes
+str_bytes_lidos resb 500 ;str com bytes lidos do arquivo de saida, vai ate 500 bytes
 
 teste2 resb 2
 
@@ -80,7 +80,7 @@ _start:
 	mov eax, 3
 	mov ebx, 0
 	mov ecx, input_file_name
-	mov edx, 25 ;nome do arquivo so vai ate 25 caracteres
+	mov edx, 500 ;nome do arquivo so vai ate 500 caracteres
 	int 80h
 	
 	mov byte [ecx + eax - 1], 0 ;bota 0 no final da string com o nome do arquivo, para poder abrir o arquivo para leitura
@@ -96,7 +96,7 @@ _start:
 	
 	;Fazendo o nome do arquivo de saida ser o de entrada.diss
 	;Pegando o nome do arquivo sem extensao
-	mov dword ecx, 25 ;botando 25 no ecx para o loop, nome do arquivo so vai ate 25 caracteres
+	mov dword ecx, 500 ;botando 500 no ecx para o loop, nome do arquivo so vai ate 500 caracteres
 	mov dword [index], 0 ;inicia o indice em 0
 output_file_name_loop:
 	mov ebx, [index]			 ;bota o indice a ser lido no ebx
@@ -211,13 +211,13 @@ end_loop:
 	mov eax, 3
 	mov ebx, dword [output_file_descriptor]
 	mov ecx, str_input
-	mov edx, TAM ;conteudo do arquivo so vai ate 150 bytes
+	mov edx, TAM ;conteudo do arquivo so vai ate 500 bytes
 	int 80h
 
 	mov dword [bytes_lidos], eax
 
 	;Convertendo o int de bytes_lidos para str, porem fica numa str invertida
-	mov dword ecx, 25 ;botando 25 no ecx para o loop
+	mov dword ecx, 500 ;botando 500 no ecx para o loop
 	mov dword [index], 0 ;inicia o indice em 0
 	mov word [const10], 10
 	mov eax, 0 					 ;quociente
@@ -247,7 +247,7 @@ loop_converte_to_str:
 termina_converte_to_str:
 
 	;Desinvertendo a str
-	mov dword ecx, 25 ;botando 25 no ecx para o loop
+	mov dword ecx, 500 ;botando 500 no ecx para o loop
 	mov eax, dword [index]
 	mov dword [index_inv], eax
 	mov dword [index_certo], 0
@@ -282,7 +282,7 @@ end_loop_desinverte_str:
 	mov eax, 4
 	mov ebx, 1
 	mov ecx, str_bytes_lidos
-	mov edx, 25
+	mov edx, 500
 	int 80h
 
 	;Finalizando o programa
@@ -297,7 +297,7 @@ le_do_arquivo:
 	mov eax, 3
 	mov ebx, [ebp+8]
 	mov ecx, str_input
-	mov edx, TAM ;conteudo do arquivo so vai ate 150 bytes
+	mov edx, TAM ;conteudo do arquivo so vai ate 500 bytes
 	int 80h
 
 	;Chamada 6, para fechar o arquivo de entrada
